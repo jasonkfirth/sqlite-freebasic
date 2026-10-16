@@ -46,6 +46,16 @@ this selection because its final reporting routine increments its counter
 once after the test cases; the case table above counts the 45,981 actual test
 invocations.
 
+## Historical suite coverage
+
+Consolidating the passing suite reports in the archived development history,
+and counting repeated reports of the same suite once, gives **66,961
+documented passing test executions**. These are historical manual results
+from across the port's development, not one run against a single source and
+compiler configuration. This suite-report aggregate is not a claim that
+SQLite's `make quicktest` passed, and it is not a substitute for the exact,
+reproducible CI result above.
+
 This is a selected qualification, not the complete SQLite test suite. The
 runner currently covers JSON and JSONB tests; other suite results in the
 archived engineering log are historical manual runs and are not part of this
