@@ -39,7 +39,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y \
-            build-essential curl libffi-dev make python3 tcl tcl-dev xz-utils
+            build-essential curl libffi-dev libgpm-dev make python3 tcl tcl-dev xz-utils
 
       - name: Build the official FreeBASIC bootstrap compiler
         run: |
