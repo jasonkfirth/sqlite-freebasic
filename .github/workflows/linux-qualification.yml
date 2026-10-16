@@ -1,0 +1,80 @@
+name: Linux qualification
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out the port
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check out pinned SQLite source and tests
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: sqlite/sqlite
+          ref: 64c2f58d739e7ca1633a7b7fbe7e5bf053f29ef5
+          path: upstream/sqlite
+          persist-credentials: false
+
+      - name: Check out upstream FreeBASIC 1.20.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: freebasic/fbc
+          ref: 5714d10adb21ba0d5d65d7d497ac32f509bb95ff
+          path: upstream/fbc
+          persist-credentials: false
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential curl libffi-dev make python3 tcl tcl-dev xz-utils
+
+      - name: Build the official FreeBASIC bootstrap compiler
+        run: |
+          curl -fL --retry 2 \
+            -o "$RUNNER_TEMP/FreeBASIC-1.10.1-source-bootstrap.tar.xz" \
+            https://github.com/freebasic/fbc/releases/download/1.10.1/FreeBASIC-1.10.1-source-bootstrap.tar.xz
+          echo "2fae2c66b435240d4de11bb534843baa188574508a8a5bdaa5020bf729bf0a3e  $RUNNER_TEMP/FreeBASIC-1.10.1-source-bootstrap.tar.xz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/fbc-bootstrap"
+          tar -xJf "$RUNNER_TEMP/FreeBASIC-1.10.1-source-bootstrap.tar.xz" \
+            -C "$RUNNER_TEMP/fbc-bootstrap"
+          bootstrap="$RUNNER_TEMP/fbc-bootstrap/FreeBASIC-1.10.1-source-bootstrap"
+          make -C "$bootstrap" bootstrap-minimal
+          mkdir -p "$bootstrap/include"
+          if [ ! -e "$bootstrap/include/freebasic" ]; then
+            ln -s ../inc "$bootstrap/include/freebasic"
+          fi
+          echo "FB_BOOTSTRAP_FBC=$bootstrap/bin/fbc" >> "$GITHUB_ENV"
+
+      - name: Build upstream FreeBASIC 1.20.0
+        run: |
+          mkdir -p upstream/fbc/include
+          if [ ! -e upstream/fbc/include/freebasic ]; then
+            ln -s ../inc upstream/fbc/include/freebasic
+          fi
+          make -C upstream/fbc FBC="$FB_BOOTSTRAP_FBC" compiler rtlib
+          echo "FBC=$GITHUB_WORKSPACE/upstream/fbc/bin/fbc" >> "$GITHUB_ENV"
+          "$GITHUB_WORKSPACE/upstream/fbc/bin/fbc" -version
+
+      - name: Build the default shared library
+        run: |
+          make -C fb_src FBC="$FBC" \
+            TARGET=build/qualification/default/libsqlite3-fb.so
+
+      - name: Run selected unchanged upstream Tcl suites
+        run: ./tests/run_upstream.sh upstream/sqlite
+
+      - name: Build C client, exchange database files, and compare libraries
+        run: ./examples/c_client/compare.sh upstream/sqlite 100000
