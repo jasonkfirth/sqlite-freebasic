@@ -23,6 +23,12 @@ products go under `fb_src/build/`.
 
 ## Qualification
 
+Automated qualification covers 45,981 unchanged upstream JSON and JSONB test
+cases. Consolidated historical suite reports record 66,961 passing test
+executions, counting repeated reports of the same suite once; those manual
+runs span development and do not represent one configuration or a `quicktest`
+run.
+
 See [QUALIFICATION.md](QUALIFICATION.md) for the exact SQLite and FreeBASIC
 source revisions, per-suite counts, compiler compatibility results, test
 fixture adaptations, and a C-client comparison.
