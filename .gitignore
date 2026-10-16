@@ -1,0 +1,9 @@
+/fb_src/build/
+/fb_src/*.fbc-*.c
+/fb_src/*.o
+/fb_src/*.asm
+/fb_src/.c2fb-*.bak
+/fb_src/testdir/test.db
+/fb_tools/sqlite_codegen/build/
+**/__pycache__/
+*.py[cod]

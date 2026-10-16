@@ -1,0 +1,12 @@
+/*
+** Export SQLite API and private sqlite3-prefixed entry points so C test
+** programs can link to the FreeBASIC library. Keep FreeBASIC runtime symbols
+** private.
+*/
+{
+  global:
+    sqlite3*;
+  local:
+    *;
+};
+/* end of sqlite3.map */
