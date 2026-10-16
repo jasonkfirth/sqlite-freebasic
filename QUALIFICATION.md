@@ -51,6 +51,23 @@ runner currently covers JSON and JSONB tests; other suite results in the
 archived engineering log are historical manual runs and are not part of this
 CI total.
 
+## Relationship to SQLite's quicktest target
+
+At the pinned SQLite revision, `make quicktest` is an alias for `devtest` in
+[`main.mk`](https://github.com/sqlite/sqlite/blob/64c2f58d739e7ca1633a7b7fbe7e5bf053f29ef5/main.mk#L1943).
+`devtest` invokes the test runner's `mdevtest` plan. SQLite documents that plan
+as the `veryquick` Tcl suite plus fuzz tests under two build configurations,
+one debug and one non-debug ([test runner documentation](https://github.com/sqlite/sqlite/blob/64c2f58d739e7ca1633a7b7fbe7e5bf053f29ef5/doc/testrunner.md#L266)).
+That is a multi-build qualification, so a single test count needs to say
+whether it counts distinct cases, executions across both builds, or fuzz
+inputs. The separate `test/quick.test` script runs the Tcl suite named
+`quick`; it is not the implementation of the `make quicktest` target.
+
+The current FreeBASIC CI does not claim to pass either `make quicktest` or the
+full `quick`/`veryquick` Tcl suite. Its published Tcl bridge implements the
+commands needed by the JSON and JSONB suites listed above. The roughly 46,000
+case count therefore describes those selected tests only.
+
 ## Tcl bridge and fixture adaptations
 
 The runner builds upstream `src/tclsqlite.c` as a Tcl shell and links it to the
